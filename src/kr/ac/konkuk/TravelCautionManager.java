@@ -1,0 +1,106 @@
+
+package kr.ac.konkuk;
+
+import java.sql.*;
+import java.util.*;
+import java.nio.file.*;
+
+public class TravelCautionManager {
+    private Map<Integer, Country> countries = new HashMap<>();
+    private Map<Integer, City> cities = new HashMap<>();
+
+    public TravelCautionManager() throws SQLException {
+        String path = "src/data.db";
+
+        if (!Files.exists(Path.of(path))) {
+            throw new SQLException("DB 파일을 찾을 수 없습니다.");
+        }
+
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path)) {
+            loadCountries(conn);
+            loadCities(conn);
+        }
+    }
+
+    private void loadCountries(Connection conn) throws SQLException {
+        String sql = "SELECT id, name, electricity_note, safety_note, " +
+                "food_note, climate_note, transport_note, travel_alert_note " +
+                "FROM countries";
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Country country = new Country(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("electricity_note"),
+                        rs.getString("safety_note"),
+                        rs.getString("food_note"),
+                        rs.getString("climate_note"),
+                        rs.getString("transport_note"),
+                        rs.getString("travel_alert_note")
+                );
+
+                countries.put(country.getId(), country);
+            }
+        }
+    }
+
+    private void loadCities(Connection conn) throws SQLException {
+        String sql = "SELECT id, name, country, electricity_note, " +
+                "safety_note, food_note, climate_note, transport_note, " +
+                "travel_alert_note FROM cities";
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                City city = new City(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getInt("country"),
+                        rs.getString("electricity_note"),
+                        rs.getString("safety_note"),
+                        rs.getString("food_note"),
+                        rs.getString("climate_note"),
+                        rs.getString("transport_note"),
+                        rs.getString("travel_alert_note")
+                );
+
+                cities.put(city.getId(), city);
+            }
+        }
+    }
+
+    public List<City> searchCities(String keyword) {
+        List<City> results = new ArrayList<>();
+
+        for (City city : cities.values()) {
+            if (city.getName().contains(keyword)) {
+                results.add(city);
+            }
+        }
+
+        results.sort(Comparator.comparingInt(City::getId));
+        return results;
+    }
+
+    public void showCautions(int cityId) {
+        City city = cities.get(cityId);
+
+        if (city == null) {
+            System.out.println("해당 도시가 없습니다.");
+            return;
+        }
+
+        Country country = countries.get(city.getCountryId());
+
+        if (country == null) {
+            System.out.println("국가 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        country.showCautions(city);
+    }
+}
