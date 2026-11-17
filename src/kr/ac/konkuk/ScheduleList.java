@@ -21,6 +21,14 @@ public class ScheduleList {
         scheduleList.add(new Schedule(nextId++, startDate, endDate, description));
     }
 
+    public void removeSchedule(int id) {
+        scheduleList.remove(findSchedule(id));
+    }
+
+    public List<Schedule> getSchedules() {
+        return List.copyOf(scheduleList);
+    }
+
     public void setDate(int id, LocalDate startDate, LocalDate endDate) {
         Schedule s = findSchedule(id);
         s.setDate(startDate, endDate);

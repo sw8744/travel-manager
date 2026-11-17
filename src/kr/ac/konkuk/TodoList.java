@@ -12,6 +12,24 @@ public class TodoList {
         todoList.add(new Todo(nextId++, done, startDate, endDate, description));
     }
 
+    public void removeTodo(int id) {
+        todoList.remove(findTodo(id));
+    }
+
+    public List<Todo> getTodos() {
+        return List.copyOf(todoList);
+    }
+
+    public List<Todo> getTodos(boolean isDone) {
+        List<Todo> result = new ArrayList<>();
+        for (Todo todo : todoList) {
+            if (todo.isDone() == isDone) {
+                result.add(todo);
+            }
+        }
+        return List.copyOf(result);
+    }
+
     private Todo findTodo(int id) {
         for (Todo todo : todoList) {
             if (todo.getId() == id) {
