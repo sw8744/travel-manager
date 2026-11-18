@@ -10,6 +10,9 @@ public class Trip {
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final TodoList todoList;
+    private final FlightList flightList;
+    private final HotelList hotelList;
+    private final ScheduleList scheduleList;
 
     public Trip(int tripId, int userId, int cityId,
                 LocalDate startDate, LocalDate endDate) {
@@ -24,6 +27,9 @@ public class Trip {
         this.startDate = startDate;
         this.endDate = endDate;
         this.todoList = new TodoList();
+        this.flightList = new FlightList();
+        this.hotelList = new HotelList();
+        this.scheduleList = new ScheduleList();
     }
 
     public int getTripId() {
@@ -48,5 +54,16 @@ public class Trip {
 
     public TodoList getTodoList() {
         return todoList;
+    }
+    public FlightList getFlightList() {
+        return flightList;
+    }
+
+    public HotelList getHotelList() {
+        return hotelList;
+    }
+
+    public ScheduleList getScheduleList() {
+        return scheduleList;
     }
 }

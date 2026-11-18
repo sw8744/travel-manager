@@ -3,6 +3,8 @@ package kr.ac.konkuk;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Objects;
 
 public class TodoList {
     private int nextId = 1;
@@ -30,7 +32,7 @@ public class TodoList {
         return List.copyOf(result);
     }
 
-    private Todo findTodo(int id) {
+    public Todo findTodo(int id) {
         for (Todo todo : todoList) {
             if (todo.getId() == id) {
                 return todo;
@@ -51,4 +53,22 @@ public class TodoList {
         t.setDate(startDate, endDate);
     }
 
+
+    public List<Todo> getTodos(LocalDate date) {
+        Objects.requireNonNull(date, "조회 날짜는 필수입니다.");
+        List<Todo> result = new ArrayList<>();
+        for (Todo item : todoList) {
+            if ((item.getStartDate() != null || item.getEndDate() != null)
+                    && (item.getStartDate() == null || !date.isBefore(item.getStartDate()))
+                    && (item.getEndDate() == null || !date.isAfter(item.getEndDate()))) {
+                result.add(item);
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    public void sortByDate() {
+        todoList.sort(Comparator.comparing((Todo item) -> item.getStartDate(),
+                Comparator.nullsLast(Comparator.naturalOrder())));
+    }
 }

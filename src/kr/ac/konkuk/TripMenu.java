@@ -50,7 +50,7 @@ public class TripMenu {
 
                     if (trip != null) {
                         trips.add(trip);
-                        TravelCautionMenu.start(trip, manager, scan);
+                        TripDetailMenu.start(trip, manager, scan);
                     }
                 }
 
@@ -60,7 +60,7 @@ public class TripMenu {
                     Trip trip = selectTrip(userId, trips, manager, scan);
 
                     if (trip != null) {
-                        TravelCautionMenu.start(trip, manager, scan);
+                        TripDetailMenu.start(trip, manager, scan);
                     }
                 }
 
