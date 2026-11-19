@@ -33,13 +33,6 @@ public class MenuCheck {
         System.setOut(new PrintStream(output));
         try {
             LocalDate day = LocalDate.of(2026, 12, 1);
-            check(MenuInput.display("NRT").equals("NRT"));
-            check(MenuInput.display("TEST HOTEL").equals("TEST HOTEL"));
-            check(MenuInput.id(input("text", "1")) == 1);
-            check(MenuInput.date(input("2026-02-30", "2026-12-01"), "date").equals(day));
-            check(MenuInput.editDate(input(""), "date", day).equals(day));
-            check(MenuInput.editDate(input("없음"), "date", day) == null);
-            check(MenuInput.required(input("", "value"), "required").equals("value"));
             ZonedDateTime departure = ZonedDateTime.of(2026, 12, 1, 17, 0, 0, 0, ZoneOffset.of("+09:00"));
             ZonedDateTime arrival = ZonedDateTime.of(2026, 12, 1, 10, 0, 0, 0, ZoneOffset.of("-08:00"));
             Flight flight = new Flight(1, "KE1", "ICN", "LAX", departure, arrival);
@@ -47,15 +40,6 @@ public class MenuCheck {
             rejected(() -> flight.update("KE2", "ICN", "LAX", arrival, departure));
             check(flight.getFlightNumber().equals("KE1"));
             rejected(() -> new Flight(2, "", "ICN", "LAX", null, null));
-            ZonedDateTime parsed = MenuInput.time(input("bad", "2026-12-01 17:00", "Bad/Zone",
-                    "2026-12-01 17:00", "+09:00"), "time", null, false);
-            check(parsed.equals(departure));
-            ZonedDateTime fixed = MenuInput.time(input("2026-03-08 02:30", "-08:00"), "time", null, false);
-            check(fixed.getHour() == 2);
-            check(fixed.getOffset().equals(ZoneOffset.of("-08:00")));
-            check(MenuInput.time(input(""), "time", departure, true).equals(departure));
-            check(MenuInput.time(input("없음"), "time", departure, true) == null);
-
             Trip trip = new Trip(1, 1, 1, day, day.plusDays(5));
             TodoList todos = trip.getTodoList();
             TodoMenu.start(todos, input("3", "4", "bad", "2", "", "passport", "bad", "2026-12-01", "2026-12-03",
@@ -90,7 +74,7 @@ public class MenuCheck {
             check(hotels.getHotels().get(0).getName().equals("Earlier"));
 
             FlightList flights = trip.getFlightList();
-            FlightMenu.start(flights, input("3", "4", "2", "KE1", "ICN", "NRT", "2026-12-01 09:00", "+09:00",
+            FlightMenu.start(flights, input("3", "4", "2", "KE1", "ICN", "NRT", "bad time", "2026-12-01 09:00", "bad offset", "2026-12-01 09:00", "+09:00",
                     "2026-12-01 11:00", "+09:00", "3", "1", "1", "", "3", "1", "4", "없음", "5", "2026-12-01", "6", "0"));
             check(flights.findFlight(1).getFlightNumber().equals("KE1"));
             check(flights.findFlight(1).getDepartureTime() == null);
@@ -118,6 +102,13 @@ public class MenuCheck {
             check(output.toString().contains("잘못된 메뉴 번호입니다."));
             check(output.toString().contains("해당 ID"));
             check(output.toString().contains("TEST HOTEL"));
+            check(output.toString().contains("NRT"));
+            FlightMenu.start(flights, input("3", "1", "5", "", "0"));
+            check(flights.findFlight(1).getArrivalTime().getHour() == 11);
+            FlightMenu.start(flights, input("2", "FIXED", "ICN", "LAX", "2026-03-08 02:30", "-08:00", "", "0"));
+            Flight fixed = flights.getFlights().get(flights.getFlights().size() - 1);
+            check(fixed.getDepartureTime().getHour() == 2);
+            check(fixed.getDepartureTime().getOffset().equals(ZoneOffset.of("-08:00")));
         } finally {
             System.setOut(original);
         }

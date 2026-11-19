@@ -49,7 +49,12 @@ public class FlightList {
     }
 
     public void sortByDate() {
-        flightList.sort(Comparator.comparing((Flight item) -> item.getDepartureTime() == null ? null : item.getDepartureTime().toInstant(),
+        flightList.sort(Comparator.comparing((Flight item) -> {
+            if (item.getDepartureTime() == null) {
+                return null;
+            }
+            return item.getDepartureTime().toInstant();
+        },
                 Comparator.nullsLast(Comparator.naturalOrder())));
     }
 }

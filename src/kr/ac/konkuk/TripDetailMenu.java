@@ -14,7 +14,9 @@ public class TripDetailMenu {
             ScheduleMenu.show(trip.getScheduleList().getSchedules());
             System.out.println("\n1. 할 일 관리  2. 항공 관리  3. 숙박 관리  4. 일정 관리");
             System.out.println("5. 여행 유의사항  0. 여행 목록으로 돌아가기");
-            switch (MenuInput.text(scan, "선택")) {
+            System.out.print("선택 : ");
+            String choice = scan.nextLine().trim();
+            switch (choice) {
                 case "1" -> TodoMenu.start(trip.getTodoList(), scan);
                 case "2" -> FlightMenu.start(trip.getFlightList(), scan);
                 case "3" -> HotelMenu.start(trip.getHotelList(), scan);

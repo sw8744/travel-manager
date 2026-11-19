@@ -16,12 +16,10 @@ public class Flight {
     }
 
     public void update(String flightNumber, String departure, String arrival, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
-        if (flightNumber == null || flightNumber.isBlank() || departure == null || departure.isBlank()
-                || arrival == null || arrival.isBlank()) {
+        if (flightNumber == null || flightNumber.isBlank() || departure == null || departure.isBlank() || arrival == null || arrival.isBlank()) {
             throw new IllegalArgumentException("편명·출발지·도착지는 필수입니다.");
         }
-        if (departureTime != null && arrivalTime != null
-                && arrivalTime.toInstant().isBefore(departureTime.toInstant())) {
+        if (departureTime != null && arrivalTime != null && arrivalTime.toInstant().isBefore(departureTime.toInstant())) {
             throw new IllegalArgumentException("도착 시각이 출발 시각보다 빠릅니다.");
         }
         this.flightNumber = flightNumber;

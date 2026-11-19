@@ -16,8 +16,7 @@ public class Hotel {
     }
 
     public void update(String name, String country, String city, LocalDate checkInDate, LocalDate checkOutDate) {
-        if (name == null || name.isBlank() || country == null || country.isBlank()
-                || city == null || city.isBlank()) {
+        if (name == null || name.isBlank() || country == null || country.isBlank() || city == null || city.isBlank()) {
             throw new IllegalArgumentException("숙소 이름·국가·도시는 필수입니다.");
         }
         if (checkInDate != null && checkOutDate != null && checkInDate.isAfter(checkOutDate)) {

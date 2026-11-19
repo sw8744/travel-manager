@@ -53,7 +53,6 @@ public class TodoList {
         t.setDate(startDate, endDate);
     }
 
-
     public List<Todo> getTodos(LocalDate date) {
         Objects.requireNonNull(date, "조회 날짜는 필수입니다.");
         List<Todo> result = new ArrayList<>();

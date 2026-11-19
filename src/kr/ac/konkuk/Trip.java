@@ -14,8 +14,7 @@ public class Trip {
     private final HotelList hotelList;
     private final ScheduleList scheduleList;
 
-    public Trip(int tripId, int userId, int cityId,
-                LocalDate startDate, LocalDate endDate) {
+    public Trip(int tripId, int userId, int cityId, LocalDate startDate, LocalDate endDate) {
 
         if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("여행 날짜가 올바르지 않습니다.");
