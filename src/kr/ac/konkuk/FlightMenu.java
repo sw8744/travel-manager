@@ -34,97 +34,11 @@ public class FlightMenu {
                 System.out.print("선택 : ");
                 switch (scan.nextLine().trim()) {
                     case "1" -> show(list.getFlights());
-                    case "2" -> {
-                        String flightNumber;
-                        while (true) {
-                            System.out.print("편명 : ");
-                            flightNumber = scan.nextLine().trim();
-                            if (!flightNumber.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        String departure;
-                        while (true) {
-                            System.out.print("출발지 : ");
-                            departure = scan.nextLine().trim();
-                            if (!departure.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        String arrival;
-                        while (true) {
-                            System.out.print("도착지 : ");
-                            arrival = scan.nextLine().trim();
-                            if (!arrival.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        ZonedDateTime departureTime = time(scan, "출발 시각", null);
-                        ZonedDateTime arrivalTime = time(scan, "도착 시각", null);
-                        list.addFlight(flightNumber, departure, arrival, departureTime, arrivalTime);
-                    }
-                    case "3" -> {
-                        show(list.getFlights());
-                        if (list.getFlights().isEmpty()) break;
-                        Flight item = selectItem(list, scan);
-                        String flightNumber = item.getFlightNumber();
-                        String departure = item.getDeparture();
-                        String arrival = item.getArrival();
-                        ZonedDateTime departureTime = item.getDepartureTime();
-                        ZonedDateTime arrivalTime = item.getArrivalTime();
-                        System.out.println("1. 편명  2. 출발지  3. 도착지  4. 출발 시각  5. 도착 시각");
-                        System.out.print("수정 항목 : ");
-                        switch (scan.nextLine().trim()) {
-                            case "1" -> {
-                                System.out.print("편명 (빈칸: 유지) : ");
-                                String value = scan.nextLine().trim();
-                                if (!value.isEmpty()) {
-                                    flightNumber = value;
-                                }
-                            }
-                            case "2" -> {
-                                System.out.print("출발지 (빈칸: 유지) : ");
-                                String value = scan.nextLine().trim();
-                                if (!value.isEmpty()) {
-                                    departure = value;
-                                }
-                            }
-                            case "3" -> {
-                                System.out.print("도착지 (빈칸: 유지) : ");
-                                String value = scan.nextLine().trim();
-                                if (!value.isEmpty()) {
-                                    arrival = value;
-                                }
-                            }
-                            case "4" -> departureTime = time(scan, "출발 시각", departureTime);
-                            case "5" -> arrivalTime = time(scan, "도착 시각", arrivalTime);
-                            default -> { System.out.println("잘못된 메뉴 번호입니다."); continue; }
-                        }
-                        list.updateFlight(item.getId(), flightNumber, departure, arrival, departureTime, arrivalTime);
-                    }
-                    case "4" -> {
-                        show(list.getFlights());
-                        if (list.getFlights().isEmpty()) break;
-                        Flight item = selectItem(list, scan);
-                        list.removeFlight(item.getId());
-                    }
-                    case "5" -> {
-                        LocalDate date;
-                        while (true) {
-                            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
-                            try {
-                                date = LocalDate.parse(scan.nextLine().trim());
-                                break;
-                            } catch (DateTimeException e) {
-                                System.out.println("입력 오류: " + e.getMessage());
-                            }
-                        }
-                        show(list.getFlights(date));
-                    }
-                    case "6" -> { list.sortByDate(); show(list.getFlights()); }
+                    case "2" -> addItem(list, scan);
+                    case "3" -> editMenu(list, scan);
+                    case "4" -> removeItem(list, scan);
+                    case "5" -> showByDate(list, scan);
+                    case "6" -> showSorted(list);
                     case "0" -> { return; }
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }
@@ -132,6 +46,114 @@ public class FlightMenu {
                 System.out.println("입력 오류: " + e.getMessage());
             }
         }
+    }
+
+    private static void addItem(FlightList list, Scanner scan) {
+        String flightNumber;
+        while (true) {
+            System.out.print("편명 : ");
+            flightNumber = scan.nextLine().trim();
+            if (!flightNumber.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        String departure;
+        while (true) {
+            System.out.print("출발지 : ");
+            departure = scan.nextLine().trim();
+            if (!departure.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        String arrival;
+        while (true) {
+            System.out.print("도착지 : ");
+            arrival = scan.nextLine().trim();
+            if (!arrival.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        ZonedDateTime departureTime = time(scan, "출발 시각", null);
+        ZonedDateTime arrivalTime = time(scan, "도착 시각", null);
+        list.addFlight(flightNumber, departure, arrival, departureTime, arrivalTime);
+    }
+
+    private static void removeItem(FlightList list, Scanner scan) {
+        show(list.getFlights());
+        if (list.getFlights().isEmpty()) return;
+        Flight item = selectItem(list, scan);
+        list.removeFlight(item.getId());
+    }
+
+    private static void showByDate(FlightList list, Scanner scan) {
+        LocalDate date;
+        while (true) {
+            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
+            try {
+                date = LocalDate.parse(scan.nextLine().trim());
+                break;
+            } catch (DateTimeException e) {
+                System.out.println("입력 오류: " + e.getMessage());
+            }
+        }
+        show(list.getFlights(date));
+    }
+
+    private static String editFlightNumber(Scanner scan, String old) {
+        System.out.print("편명 (빈칸: 유지) : ");
+        String value = scan.nextLine().trim();
+        if (!value.isEmpty()) {
+            return value;
+        }
+        return old;
+    }
+
+    private static String editDeparture(Scanner scan, String old) {
+        System.out.print("출발지 (빈칸: 유지) : ");
+        String value = scan.nextLine().trim();
+        if (!value.isEmpty()) {
+            return value;
+        }
+        return old;
+    }
+
+    private static String editArrival(Scanner scan, String old) {
+        System.out.print("도착지 (빈칸: 유지) : ");
+        String value = scan.nextLine().trim();
+        if (!value.isEmpty()) {
+            return value;
+        }
+        return old;
+    }
+
+    private static void showSorted(FlightList list) {
+        list.sortByDate();
+        show(list.getFlights());
+    }
+
+    private static void editMenu(FlightList list, Scanner scan) {
+        show(list.getFlights());
+        if (list.getFlights().isEmpty()) return;
+        Flight item = selectItem(list, scan);
+        String flightNumber = item.getFlightNumber();
+        String departure = item.getDeparture();
+        String arrival = item.getArrival();
+        ZonedDateTime departureTime = item.getDepartureTime();
+        ZonedDateTime arrivalTime = item.getArrivalTime();
+        System.out.println("1. 편명  2. 출발지  3. 도착지  4. 출발 시각  5. 도착 시각");
+        System.out.print("수정 항목 : ");
+        switch (scan.nextLine().trim()) {
+            case "1" -> flightNumber = editFlightNumber(scan, flightNumber);
+            case "2" -> departure = editDeparture(scan, departure);
+            case "3" -> arrival = editArrival(scan, arrival);
+            case "4" -> departureTime = time(scan, "출발 시각", departureTime);
+            case "5" -> arrivalTime = time(scan, "도착 시각", arrivalTime);
+            default -> { System.out.println("잘못된 메뉴 번호입니다."); return; }
+        }
+        list.updateFlight(item.getId(), flightNumber, departure, arrival, departureTime, arrivalTime);
     }
 
     private static Flight selectItem(FlightList list, Scanner scan) {

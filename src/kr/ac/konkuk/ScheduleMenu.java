@@ -31,65 +31,80 @@ public class ScheduleMenu {
                 System.out.print("선택 : ");
                 switch (scan.nextLine().trim()) {
                     case "1" -> show(list.getSchedules());
-                    case "2" -> {
-                        String description;
-                        while (true) {
-                            System.out.print("내용 : ");
-                            description = scan.nextLine().trim();
-                            if (!description.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        LocalDate start = editDate(scan, "시작일", null);
-                        LocalDate end = editDate(scan, "종료일", null);
-                        list.addSchedule(start, end, description);
-                    }
-                    case "3" -> {
-                        show(list.getSchedules());
-                        if (list.getSchedules().isEmpty()) break;
-                        Schedule item = selectItem(list, scan);
-                        System.out.print("수정 항목 (1: 내용, 2: 기간) : ");
-                        switch (scan.nextLine().trim()) {
-                            case "1" -> {
-                                System.out.print("내용 (빈칸: 유지) : ");
-                                String description = scan.nextLine().trim();
-                                if (!description.isEmpty()) {
-                                    list.setDescription(item.getId(), description);
-                                }
-                            }
-                            case "2" -> list.setDate(item.getId(),
-                                    editDate(scan, "시작일", item.getStartDate()),
-                                    editDate(scan, "종료일", item.getEndDate()));
-                            default -> System.out.println("잘못된 메뉴 번호입니다.");
-                        }
-                    }
-                    case "4" -> {
-                        show(list.getSchedules());
-                        if (list.getSchedules().isEmpty()) break;
-                        Schedule item = selectItem(list, scan);
-                        list.removeSchedule(item.getId());
-                    }
-                    case "5" -> {
-                        LocalDate date;
-                        while (true) {
-                            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
-                            try {
-                                date = LocalDate.parse(scan.nextLine().trim());
-                                break;
-                            } catch (DateTimeException e) {
-                                System.out.println("입력 오류: " + e.getMessage());
-                            }
-                        }
-                        show(list.getSchedules(date));
-                    }
-                    case "6" -> { list.sortByDate(); show(list.getSchedules()); }
+                    case "2" -> addItem(list, scan);
+                    case "3" -> editMenu(list, scan);
+                    case "4" -> removeItem(list, scan);
+                    case "5" -> showByDate(list, scan);
+                    case "6" -> showSorted(list);
                     case "0" -> { return; }
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }
             } catch (IllegalArgumentException | DateTimeException e) {
                 System.out.println("입력 오류: " + e.getMessage());
             }
+        }
+    }
+
+    private static void addItem(ScheduleList list, Scanner scan) {
+        String description;
+        while (true) {
+            System.out.print("내용 : ");
+            description = scan.nextLine().trim();
+            if (!description.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        LocalDate start = editDate(scan, "시작일", null);
+        LocalDate end = editDate(scan, "종료일", null);
+        list.addSchedule(start, end, description);
+    }
+
+    private static void removeItem(ScheduleList list, Scanner scan) {
+        show(list.getSchedules());
+        if (list.getSchedules().isEmpty()) return;
+        Schedule item = selectItem(list, scan);
+        list.removeSchedule(item.getId());
+    }
+
+    private static void showByDate(ScheduleList list, Scanner scan) {
+        LocalDate date;
+        while (true) {
+            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
+            try {
+                date = LocalDate.parse(scan.nextLine().trim());
+                break;
+            } catch (DateTimeException e) {
+                System.out.println("입력 오류: " + e.getMessage());
+            }
+        }
+        show(list.getSchedules(date));
+    }
+
+    private static void editDescription(ScheduleList list, Schedule item, Scanner scan) {
+        System.out.print("내용 (빈칸: 유지) : ");
+        String description = scan.nextLine().trim();
+        if (!description.isEmpty()) {
+            list.setDescription(item.getId(), description);
+        }
+    }
+
+    private static void showSorted(ScheduleList list) {
+        list.sortByDate();
+        show(list.getSchedules());
+    }
+
+    private static void editMenu(ScheduleList list, Scanner scan) {
+        show(list.getSchedules());
+        if (list.getSchedules().isEmpty()) return;
+        Schedule item = selectItem(list, scan);
+        System.out.print("수정 항목 (1: 내용, 2: 기간) : ");
+        switch (scan.nextLine().trim()) {
+            case "1" -> editDescription(list, item, scan);
+            case "2" -> list.setDate(item.getId(),
+                    editDate(scan, "시작일", item.getStartDate()),
+                    editDate(scan, "종료일", item.getEndDate()));
+            default -> System.out.println("잘못된 메뉴 번호입니다.");
         }
     }
 

@@ -36,74 +36,91 @@ public class TodoMenu {
                 System.out.print("선택 : ");
                 switch (scan.nextLine().trim()) {
                     case "1" -> show(list.getTodos());
-                    case "2" -> {
-                        String description;
-                        while (true) {
-                            System.out.print("내용 : ");
-                            description = scan.nextLine().trim();
-                            if (!description.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        LocalDate start = editDate(scan, "시작일", null);
-                        LocalDate end = editDate(scan, "종료일", null);
-                        list.addTodo(false, start, end, description);
-                    }
-                    case "3" -> {
-                        show(list.getTodos());
-                        if (list.getTodos().isEmpty()) break;
-                        Todo item = selectItem(list, scan);
-                        System.out.print("수정 항목 (1: 내용, 2: 기간) : ");
-                        switch (scan.nextLine().trim()) {
-                            case "1" -> {
-                                System.out.print("내용 (빈칸: 유지) : ");
-                                String description = scan.nextLine().trim();
-                                if (!description.isEmpty()) {
-                                    list.setDescription(item.getId(), description);
-                                }
-                            }
-                            case "2" -> list.setDate(item.getId(),
-                                    editDate(scan, "시작일", item.getStartDate()),
-                                    editDate(scan, "종료일", item.getEndDate()));
-                            default -> System.out.println("잘못된 메뉴 번호입니다.");
-                        }
-                    }
-                    case "4" -> {
-                        show(list.getTodos());
-                        if (list.getTodos().isEmpty()) break;
-                        Todo item = selectItem(list, scan);
-                        list.removeTodo(item.getId());
-                    }
-                    case "5" -> {
-                        if (list.getTodos().isEmpty()) { show(list.getTodos()); break; }
-                        Todo item = selectItem(list, scan);
-                        System.out.print("완료 여부 (true/false) : ");
-                        boolean done = scan.nextLine().trim().equals("true");
-                        list.setDone(item.getId(), done);
-                    }
+                    case "2" -> addItem(list, scan);
+                    case "3" -> editMenu(list, scan);
+                    case "4" -> removeItem(list, scan);
+                    case "5" -> changeDone(list, scan);
                     case "6" -> show(list.getTodos(true));
                     case "7" -> show(list.getTodos(false));
-                    case "8" -> {
-                        LocalDate date;
-                        while (true) {
-                            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
-                            try {
-                                date = LocalDate.parse(scan.nextLine().trim());
-                                break;
-                            } catch (DateTimeException e) {
-                                System.out.println("입력 오류: " + e.getMessage());
-                            }
-                        }
-                        show(list.getTodos(date));
-                    }
-                    case "9" -> { list.sortByDate(); show(list.getTodos()); }
+                    case "8" -> showByDate(list, scan);
+                    case "9" -> showSorted(list);
                     case "0" -> { return; }
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }
             } catch (IllegalArgumentException | DateTimeException e) {
                 System.out.println("입력 오류: " + e.getMessage());
             }
+        }
+    }
+
+    private static void addItem(TodoList list, Scanner scan) {
+        String description;
+        while (true) {
+            System.out.print("내용 : ");
+            description = scan.nextLine().trim();
+            if (!description.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        LocalDate start = editDate(scan, "시작일", null);
+        LocalDate end = editDate(scan, "종료일", null);
+        list.addTodo(false, start, end, description);
+    }
+
+    private static void removeItem(TodoList list, Scanner scan) {
+        show(list.getTodos());
+        if (list.getTodos().isEmpty()) return;
+        Todo item = selectItem(list, scan);
+        list.removeTodo(item.getId());
+    }
+
+    private static void changeDone(TodoList list, Scanner scan) {
+        if (list.getTodos().isEmpty()) { show(list.getTodos()); return; }
+        Todo item = selectItem(list, scan);
+        System.out.print("완료 여부 (true/false) : ");
+        boolean done = scan.nextLine().trim().equals("true");
+        list.setDone(item.getId(), done);
+    }
+
+    private static void showByDate(TodoList list, Scanner scan) {
+        LocalDate date;
+        while (true) {
+            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
+            try {
+                date = LocalDate.parse(scan.nextLine().trim());
+                break;
+            } catch (DateTimeException e) {
+                System.out.println("입력 오류: " + e.getMessage());
+            }
+        }
+        show(list.getTodos(date));
+    }
+
+    private static void editDescription(TodoList list, Todo item, Scanner scan) {
+        System.out.print("내용 (빈칸: 유지) : ");
+        String description = scan.nextLine().trim();
+        if (!description.isEmpty()) {
+            list.setDescription(item.getId(), description);
+        }
+    }
+
+    private static void showSorted(TodoList list) {
+        list.sortByDate();
+        show(list.getTodos());
+    }
+
+    private static void editMenu(TodoList list, Scanner scan) {
+        show(list.getTodos());
+        if (list.getTodos().isEmpty()) return;
+        Todo item = selectItem(list, scan);
+        System.out.print("수정 항목 (1: 내용, 2: 기간) : ");
+        switch (scan.nextLine().trim()) {
+            case "1" -> editDescription(list, item, scan);
+            case "2" -> list.setDate(item.getId(),
+                    editDate(scan, "시작일", item.getStartDate()),
+                    editDate(scan, "종료일", item.getEndDate()));
+            default -> System.out.println("잘못된 메뉴 번호입니다.");
         }
     }
 

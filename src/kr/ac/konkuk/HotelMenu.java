@@ -34,97 +34,11 @@ public class HotelMenu {
                 System.out.print("선택 : ");
                 switch (scan.nextLine().trim()) {
                     case "1" -> show(list.getHotels());
-                    case "2" -> {
-                        String name;
-                        while (true) {
-                            System.out.print("숙소 이름 : ");
-                            name = scan.nextLine().trim();
-                            if (!name.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        String country;
-                        while (true) {
-                            System.out.print("국가 : ");
-                            country = scan.nextLine().trim();
-                            if (!country.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        String city;
-                        while (true) {
-                            System.out.print("도시 : ");
-                            city = scan.nextLine().trim();
-                            if (!city.isBlank()) {
-                                break;
-                            }
-                            System.out.println("필수 항목입니다.");
-                        }
-                        LocalDate checkInDate = editDate(scan, "체크인", null);
-                        LocalDate checkOutDate = editDate(scan, "체크아웃", null);
-                        list.addHotel(name, country, city, checkInDate, checkOutDate);
-                    }
-                    case "3" -> {
-                        show(list.getHotels());
-                        if (list.getHotels().isEmpty()) break;
-                        Hotel item = selectItem(list, scan);
-                        String name = item.getName();
-                        String country = item.getCountry();
-                        String city = item.getCity();
-                        LocalDate checkInDate = item.getCheckInDate();
-                        LocalDate checkOutDate = item.getCheckOutDate();
-                        System.out.println("1. 숙소 이름  2. 국가  3. 도시  4. 체크인  5. 체크아웃");
-                        System.out.print("수정 항목 : ");
-                        switch (scan.nextLine().trim()) {
-                            case "1" -> {
-                                System.out.print("숙소 이름 (빈칸: 유지) : ");
-                                String value = scan.nextLine().trim();
-                                if (!value.isEmpty()) {
-                                    name = value;
-                                }
-                            }
-                            case "2" -> {
-                                System.out.print("국가 (빈칸: 유지) : ");
-                                String value = scan.nextLine().trim();
-                                if (!value.isEmpty()) {
-                                    country = value;
-                                }
-                            }
-                            case "3" -> {
-                                System.out.print("도시 (빈칸: 유지) : ");
-                                String value = scan.nextLine().trim();
-                                if (!value.isEmpty()) {
-                                    city = value;
-                                }
-                            }
-                            case "4" -> checkInDate = editDate(scan, "체크인", checkInDate);
-                            case "5" -> checkOutDate = editDate(scan, "체크아웃", checkOutDate);
-                            default -> { System.out.println("잘못된 메뉴 번호입니다."); continue; }
-                        }
-                        list.updateHotel(item.getId(), name, country, city, checkInDate, checkOutDate);
-                    }
-                    case "4" -> {
-                        show(list.getHotels());
-                        if (list.getHotels().isEmpty()) break;
-                        Hotel item = selectItem(list, scan);
-                        list.removeHotel(item.getId());
-                    }
-                    case "5" -> {
-                        LocalDate date;
-                        while (true) {
-                            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
-                            try {
-                                date = LocalDate.parse(scan.nextLine().trim());
-                                break;
-                            } catch (DateTimeException e) {
-                                System.out.println("입력 오류: " + e.getMessage());
-                            }
-                        }
-                        show(list.getHotels(date));
-                    }
-                    case "6" -> { list.sortByDate(); show(list.getHotels()); }
+                    case "2" -> addItem(list, scan);
+                    case "3" -> editMenu(list, scan);
+                    case "4" -> removeItem(list, scan);
+                    case "5" -> showByDate(list, scan);
+                    case "6" -> showSorted(list);
                     case "0" -> { return; }
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }
@@ -132,6 +46,114 @@ public class HotelMenu {
                 System.out.println("입력 오류: " + e.getMessage());
             }
         }
+    }
+
+    private static void addItem(HotelList list, Scanner scan) {
+        String name;
+        while (true) {
+            System.out.print("숙소 이름 : ");
+            name = scan.nextLine().trim();
+            if (!name.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        String country;
+        while (true) {
+            System.out.print("국가 : ");
+            country = scan.nextLine().trim();
+            if (!country.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        String city;
+        while (true) {
+            System.out.print("도시 : ");
+            city = scan.nextLine().trim();
+            if (!city.isBlank()) {
+                break;
+            }
+            System.out.println("필수 항목입니다.");
+        }
+        LocalDate checkInDate = editDate(scan, "체크인", null);
+        LocalDate checkOutDate = editDate(scan, "체크아웃", null);
+        list.addHotel(name, country, city, checkInDate, checkOutDate);
+    }
+
+    private static void removeItem(HotelList list, Scanner scan) {
+        show(list.getHotels());
+        if (list.getHotels().isEmpty()) return;
+        Hotel item = selectItem(list, scan);
+        list.removeHotel(item.getId());
+    }
+
+    private static void showByDate(HotelList list, Scanner scan) {
+        LocalDate date;
+        while (true) {
+            System.out.print("조회 날짜 (YYYY-MM-DD) : ");
+            try {
+                date = LocalDate.parse(scan.nextLine().trim());
+                break;
+            } catch (DateTimeException e) {
+                System.out.println("입력 오류: " + e.getMessage());
+            }
+        }
+        show(list.getHotels(date));
+    }
+
+    private static String editName(Scanner scan, String old) {
+        System.out.print("숙소 이름 (빈칸: 유지) : ");
+        String value = scan.nextLine().trim();
+        if (!value.isEmpty()) {
+            return value;
+        }
+        return old;
+    }
+
+    private static String editCountry(Scanner scan, String old) {
+        System.out.print("국가 (빈칸: 유지) : ");
+        String value = scan.nextLine().trim();
+        if (!value.isEmpty()) {
+            return value;
+        }
+        return old;
+    }
+
+    private static String editCity(Scanner scan, String old) {
+        System.out.print("도시 (빈칸: 유지) : ");
+        String value = scan.nextLine().trim();
+        if (!value.isEmpty()) {
+            return value;
+        }
+        return old;
+    }
+
+    private static void showSorted(HotelList list) {
+        list.sortByDate();
+        show(list.getHotels());
+    }
+
+    private static void editMenu(HotelList list, Scanner scan) {
+        show(list.getHotels());
+        if (list.getHotels().isEmpty()) return;
+        Hotel item = selectItem(list, scan);
+        String name = item.getName();
+        String country = item.getCountry();
+        String city = item.getCity();
+        LocalDate checkInDate = item.getCheckInDate();
+        LocalDate checkOutDate = item.getCheckOutDate();
+        System.out.println("1. 숙소 이름  2. 국가  3. 도시  4. 체크인  5. 체크아웃");
+        System.out.print("수정 항목 : ");
+        switch (scan.nextLine().trim()) {
+            case "1" -> name = editName(scan, name);
+            case "2" -> country = editCountry(scan, country);
+            case "3" -> city = editCity(scan, city);
+            case "4" -> checkInDate = editDate(scan, "체크인", checkInDate);
+            case "5" -> checkOutDate = editDate(scan, "체크아웃", checkOutDate);
+            default -> { System.out.println("잘못된 메뉴 번호입니다."); return; }
+        }
+        list.updateHotel(item.getId(), name, country, city, checkInDate, checkOutDate);
     }
 
     private static Hotel selectItem(HotelList list, Scanner scan) {
