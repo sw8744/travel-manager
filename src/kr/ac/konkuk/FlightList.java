@@ -11,6 +11,11 @@ public class FlightList {
     private int nextId = 1;
     private final List<Flight> flightList = new ArrayList<>();
 
+    void restore(Flight flight) {
+        flightList.add(flight);
+        nextId = Math.max(nextId, flight.getId() + 1);
+    }
+
     public void addFlight(String flightNumber, String departure, String arrival, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
         flightList.add(new Flight(nextId++, flightNumber, departure, arrival, departureTime, arrivalTime));
     }

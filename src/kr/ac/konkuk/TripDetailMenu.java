@@ -4,6 +4,10 @@ import java.util.Scanner;
 
 public class TripDetailMenu {
     public static void start(Trip trip, TravelCautionManager manager, Scanner scan) {
+        start(trip, manager, scan, () -> {});
+    }
+
+    public static void start(Trip trip, TravelCautionManager manager, Scanner scan, Runnable save) {
         while (true) {
             System.out.println("\n===== 여행 상세 =====");
             System.out.println("여행 ID: " + trip.getTripId());
@@ -16,14 +20,18 @@ public class TripDetailMenu {
             System.out.println("5. 여행 유의사항  0. 여행 목록으로 돌아가기");
             System.out.print("선택 : ");
             String choice = scan.nextLine().trim();
-            switch (choice) {
-                case "1" -> TodoMenu.start(trip.getTodoList(), scan);
-                case "2" -> FlightMenu.start(trip.getFlightList(), scan);
-                case "3" -> HotelMenu.start(trip.getHotelList(), scan);
-                case "4" -> ScheduleMenu.start(trip.getScheduleList(), scan);
-                case "5" -> manager.showCautions(trip.getCityId());
-                case "0" -> { return; }
-                default -> System.out.println("잘못된 메뉴 번호입니다.");
+            try {
+                switch (choice) {
+                    case "1" -> TodoMenu.start(trip.getTodoList(), scan);
+                    case "2" -> FlightMenu.start(trip.getFlightList(), scan);
+                    case "3" -> HotelMenu.start(trip.getHotelList(), scan);
+                    case "4" -> ScheduleMenu.start(trip.getScheduleList(), scan);
+                    case "5" -> manager.showCautions(trip.getCityId());
+                    case "0" -> { return; }
+                    default -> System.out.println("잘못된 메뉴 번호입니다.");
+                }
+            } finally {
+                save.run();
             }
         }
     }

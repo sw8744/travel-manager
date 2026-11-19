@@ -10,6 +10,11 @@ public class HotelList {
     private int nextId = 1;
     private final List<Hotel> hotelList = new ArrayList<>();
 
+    void restore(Hotel hotel) {
+        hotelList.add(hotel);
+        nextId = Math.max(nextId, hotel.getId() + 1);
+    }
+
     public void addHotel(String name, String country, String city, LocalDate checkInDate, LocalDate checkOutDate) {
         hotelList.add(new Hotel(nextId++, name, country, city, checkInDate, checkOutDate));
     }

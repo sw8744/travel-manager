@@ -78,9 +78,15 @@ public class TodoMenu {
     private static void changeDone(TodoList list, Scanner scan) {
         if (list.getTodos().isEmpty()) { show(list.getTodos()); return; }
         Todo item = selectItem(list, scan);
-        System.out.print("완료 여부 (true/false) : ");
-        boolean done = scan.nextLine().trim().equals("true");
-        list.setDone(item.getId(), done);
+        while (true) {
+            System.out.print("완료 여부 (true/false) : ");
+            String value = scan.nextLine().trim();
+            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                list.setDone(item.getId(), Boolean.parseBoolean(value));
+                return;
+            }
+            System.out.println("true 또는 false를 입력하세요.");
+        }
     }
 
     private static void showByDate(TodoList list, Scanner scan) {

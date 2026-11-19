@@ -3,20 +3,13 @@ package kr.ac.konkuk;
 
 import java.sql.*;
 import java.util.*;
-import java.nio.file.*;
 
 public class TravelCautionManager {
     private Map<Integer, Country> countries = new HashMap<>();
     private Map<Integer, City> cities = new HashMap<>();
 
     public TravelCautionManager() throws SQLException {
-        String path = "src/data.db";
-
-        if (!Files.exists(Path.of(path))) {
-            throw new SQLException("DB 파일을 찾을 수 없습니다.");
-        }
-
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path)) {
+        try (Connection conn = Database.openConnection()) {
             loadCountries(conn);
             loadCities(conn);
         }

@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Scanner;
 
 public class TripMenu {
-    private static int nextTripId = 1;
-
     public static void start(int userId, List<Trip> trips, Scanner scan) {
+        start(userId, trips, scan, () -> {});
+    }
+
+    public static void start(int userId, List<Trip> trips, Scanner scan, Runnable save) {
         TravelCautionManager manager;
 
         try {
@@ -21,13 +23,14 @@ public class TripMenu {
             if (e.getMessage() != null &&
                     e.getMessage().contains("No suitable driver")) {
                 System.out.println("SQLite JDBC 드라이버가 없습니다. Maven 프로젝트를 로드하세요.");
-                System.out.println("Maven 설치 후 프로젝트 루트에서: mvn clean compile exec:java");
+                System.out.println("프로젝트 루트에서: ./mvnw compile exec:java");
             } else {
                 System.out.println("src/data.db 경로와 DB 테이블을 확인하세요.");
             }
             return;
         }
 
+        int nextTripId = 1;
         for (Trip trip : trips) {
             if (trip.getTripId() >= nextTripId) {
                 nextTripId = trip.getTripId() + 1;
@@ -39,18 +42,20 @@ public class TripMenu {
             System.out.println("1. 새 여행 등록");
             System.out.println("2. 여행 목록 조회");
             System.out.println("3. 기존 여행 선택");
-            System.out.println("0. 종료");
+            System.out.println("0. 로그아웃");
             System.out.print("선택 : ");
 
             String choice = scan.nextLine().trim();
 
             switch (choice) {
                 case "1" -> {
-                    Trip trip = createTrip(userId, manager, scan);
+                    Trip trip = createTrip(nextTripId, userId, manager, scan);
 
                     if (trip != null) {
                         trips.add(trip);
-                        TripDetailMenu.start(trip, manager, scan);
+                        nextTripId++;
+                        save.run();
+                        TripDetailMenu.start(trip, manager, scan, save);
                     }
                 }
 
@@ -60,7 +65,7 @@ public class TripMenu {
                     Trip trip = selectTrip(userId, trips, manager, scan);
 
                     if (trip != null) {
-                        TripDetailMenu.start(trip, manager, scan);
+                        TripDetailMenu.start(trip, manager, scan, save);
                     }
                 }
 
@@ -73,7 +78,7 @@ public class TripMenu {
         }
     }
 
-    private static Trip createTrip(int userId,
+    private static Trip createTrip(int tripId, int userId,
                                    TravelCautionManager manager,
                                    Scanner scan) {
 
@@ -120,8 +125,7 @@ public class TripMenu {
             System.out.print("여행 종료일 (YYYY-MM-DD) : ");
             LocalDate endDate = LocalDate.parse(scan.nextLine().trim());
 
-            Trip trip = new Trip(nextTripId, userId, cityId, startDate, endDate);
-            nextTripId++;
+            Trip trip = new Trip(tripId, userId, cityId, startDate, endDate);
 
             System.out.println("여행 등록 완료! 여행 ID : " + trip.getTripId());
 

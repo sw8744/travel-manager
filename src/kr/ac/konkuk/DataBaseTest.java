@@ -6,7 +6,7 @@ import java.sql.*;
 public class DataBaseTest {
     public static void main(String[] args) {
         try {
-            Connection conn = DriverManager.getConnection("jdbc:sqlite:data.db");
+            Connection conn = Database.openConnection();
 
             String sql = "SELECT id, name FROM countries";
             Statement stmt = conn.createStatement();

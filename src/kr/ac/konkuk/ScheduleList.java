@@ -10,6 +10,11 @@ public class ScheduleList {
     private int nextId = 1;
     private final List<Schedule> scheduleList = new ArrayList<>();
 
+    void restore(Schedule schedule) {
+        scheduleList.add(schedule);
+        nextId = Math.max(nextId, schedule.getId() + 1);
+    }
+
     public Schedule findSchedule(int id) {
         for (Schedule schedule : scheduleList) {
             if (schedule.getId() == id) {

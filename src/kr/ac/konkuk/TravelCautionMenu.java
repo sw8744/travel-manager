@@ -21,10 +21,7 @@ public class TravelCautionMenu {
             String choice = scan.nextLine().trim();
 
             switch (choice) {
-                case "1" -> {
-                    TodoList todoList = trip.getTodoList();
-                    System.out.println("TodoList 메뉴 연결 예정");
-                }
+                case "1" -> TodoMenu.start(trip.getTodoList(), scan);
 
                 case "2" -> manager.showCautions(trip.getCityId());
 

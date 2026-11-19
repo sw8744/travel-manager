@@ -10,6 +10,11 @@ public class TodoList {
     private int nextId = 1;
     private final List<Todo> todoList = new ArrayList<>();
 
+    void restore(Todo todo) {
+        todoList.add(todo);
+        nextId = Math.max(nextId, todo.getId() + 1);
+    }
+
     public void addTodo(boolean done, LocalDate startDate, LocalDate endDate, String description) {
         todoList.add(new Todo(nextId++, done, startDate, endDate, description));
     }
