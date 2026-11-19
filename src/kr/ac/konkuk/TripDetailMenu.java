@@ -1,13 +1,15 @@
 package kr.ac.konkuk;
 
 import java.util.Scanner;
+import java.util.List;
 
 public class TripDetailMenu {
     public static void start(Trip trip, TravelCautionManager manager, Scanner scan) {
-        start(trip, manager, scan, () -> {});
+        start(trip, manager, scan, null, List.of(trip));
     }
 
-    public static void start(Trip trip, TravelCautionManager manager, Scanner scan, Runnable save) {
+    public static void start(Trip trip, TravelCautionManager manager, Scanner scan,
+                             TripStore store, List<Trip> trips) {
         while (true) {
             System.out.println("\n===== 여행 상세 =====");
             System.out.println("여행 ID: " + trip.getTripId());
@@ -31,7 +33,9 @@ public class TripDetailMenu {
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }
             } finally {
-                save.run();
+                if (store != null) {
+                    store.saveTrips(trip.getUserId(), trips);
+                }
             }
         }
     }

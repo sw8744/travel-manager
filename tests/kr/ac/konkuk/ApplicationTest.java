@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -67,10 +68,30 @@ class ApplicationTest {
         assertEquals(password.hashCode(), db.getUser(original.id).getPassword());
         assertEquals(original, users.login(original.id, password.hashCode()));
         assertTrue(users.login(new User("이름을 입력하지 않아도 됨", original.id, password.hashCode())));
-        assertThrows(PasswordDoesNotMatchException.class, () -> users.login(original.id, password.trim().hashCode()));
-        assertThrows(UserNotFoundException.class, () -> users.login("missing", password.hashCode()));
-        assertThrows(UserAlreadyExistsExeption.class, () -> users.register(original));
-        assertThrows(IllegalArgumentException.class, () -> users.register(new User("", "blank", 1)));
+        try {
+            users.login(original.id, password.trim().hashCode());
+            fail("잘못된 비밀번호는 거부해야 합니다.");
+        } catch (PasswordDoesNotMatchException e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            users.login("missing", password.hashCode());
+            fail("없는 사용자는 로그인할 수 없어야 합니다.");
+        } catch (UserNotFoundException e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            users.register(original);
+            fail("같은 아이디를 중복 등록할 수 없어야 합니다.");
+        } catch (UserAlreadyExistsExeption e) {
+            assertNotNull(e.getMessage());
+        }
+        try {
+            users.register(new User("", "blank", 1));
+            fail("빈 이름은 거부해야 합니다.");
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e.getMessage());
+        }
         int number = db.getUserNumber(original.id);
         db.initialize();
         store.initialize();
@@ -113,7 +134,7 @@ class ApplicationTest {
         Trip loaded = new TripStore().loadTrips(alice).get(0);
         assertEquals(day, loaded.getStartDate());
         assertEquals(day.plusDays(3), loaded.getEndDate());
-        assertEquals(List.of(3, 2), loaded.getTodoList().getTodos().stream().map(Todo::getId).toList());
+        assertEquals(List.of(3, 2), todoIds(loaded.getTodoList()));
         assertTrue(loaded.getTodoList().findTodo(2).isDone());
         assertNull(loaded.getTodoList().findTodo(2).getEndDate());
         assertEquals(departure, loaded.getFlightList().findFlight(2).getDepartureTime());
@@ -123,7 +144,12 @@ class ApplicationTest {
         assertEquals("산책", loaded.getScheduleList().findSchedule(1).getDescription());
         assertNull(loaded.getScheduleList().findSchedule(1).getEndDate());
         assertTrue(store.loadTrips(bob).get(0).getTodoList().getTodos().isEmpty());
-        assertThrows(IllegalArgumentException.class, () -> store.saveTrips(alice, store.loadTrips(bob)));
+        try {
+            store.saveTrips(alice, store.loadTrips(bob));
+            fail("다른 사용자의 여행은 저장할 수 없어야 합니다.");
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e.getMessage());
+        }
 
         loaded.getTodoList().addTodo(false, null, null, "추가");
         loaded.getFlightList().addFlight("KE2", "ICN", "LAX", null, null);
@@ -139,7 +165,7 @@ class ApplicationTest {
         loaded.getScheduleList().removeSchedule(1);
         store.saveTrips(alice, List.of(loaded));
         Trip reloaded = store.loadTrips(alice).get(0);
-        assertEquals(List.of(3, 4), reloaded.getTodoList().getTodos().stream().map(Todo::getId).toList());
+        assertEquals(List.of(3, 4), todoIds(reloaded.getTodoList()));
         assertEquals(1, reloaded.getFlightList().getFlights().size());
         assertNull(reloaded.getFlightList().findFlight(3).getArrivalTime());
         assertEquals(1, reloaded.getHotelList().getHotels().size());
@@ -152,7 +178,12 @@ class ApplicationTest {
         Trip original = trip(userId);
         original.getTodoList().addTodo(false, null, null, "기존 데이터");
         store.saveTrips(userId, List.of(original));
-        assertThrows(IllegalStateException.class, () -> store.saveTrips(userId, List.of(original, original)));
+        try {
+            store.saveTrips(userId, List.of(original, original));
+            fail("여행 번호가 중복되면 저장을 취소해야 합니다.");
+        } catch (IllegalStateException e) {
+            assertNotNull(e.getMessage());
+        }
         assertEquals("기존 데이터", store.loadTrips(userId).get(0).getTodoList().findTodo(1).getDescription());
         try (Connection conn = Database.openConnection(); Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("PRAGMA foreign_key_check")) {
@@ -234,6 +265,14 @@ class ApplicationTest {
     @Test
     void existingMenuChecksStillPass() {
         MenuCheck.main(new String[0]);
+    }
+
+    private List<Integer> todoIds(TodoList list) {
+        List<Integer> ids = new ArrayList<>();
+        for (Todo todo : list.getTodos()) {
+            ids.add(todo.getId());
+        }
+        return ids;
     }
 
     private String runMain(String... lines) {

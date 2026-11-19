@@ -54,7 +54,18 @@ public class HotelList {
     }
 
     public void sortByDate() {
-        hotelList.sort(Comparator.comparing((Hotel item) -> item.getCheckInDate(),
-                Comparator.nullsLast(Comparator.naturalOrder())));
+        hotelList.sort(new HotelDateComparator());
+    }
+
+    private static class HotelDateComparator implements Comparator<Hotel> {
+        @Override
+        public int compare(Hotel first, Hotel second) {
+            LocalDate firstDate = first.getCheckInDate();
+            LocalDate secondDate = second.getCheckInDate();
+            if (firstDate == null && secondDate == null) return 0;
+            if (firstDate == null) return 1;
+            if (secondDate == null) return -1;
+            return firstDate.compareTo(secondDate);
+        }
     }
 }

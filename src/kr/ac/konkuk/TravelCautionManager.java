@@ -75,8 +75,15 @@ public class TravelCautionManager {
             }
         }
 
-        results.sort(Comparator.comparingInt(City::getId));
+        results.sort(new CityIdComparator());
         return results;
+    }
+
+    private static class CityIdComparator implements Comparator<City> {
+        @Override
+        public int compare(City first, City second) {
+            return Integer.compare(first.getId(), second.getId());
+        }
     }
 
     public void showCautions(int cityId) {

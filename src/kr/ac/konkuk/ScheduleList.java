@@ -60,7 +60,18 @@ public class ScheduleList {
     }
 
     public void sortByDate() {
-        scheduleList.sort(Comparator.comparing((Schedule item) -> item.getStartDate(),
-                Comparator.nullsLast(Comparator.naturalOrder())));
+        scheduleList.sort(new ScheduleDateComparator());
+    }
+
+    private static class ScheduleDateComparator implements Comparator<Schedule> {
+        @Override
+        public int compare(Schedule first, Schedule second) {
+            LocalDate firstDate = first.getStartDate();
+            LocalDate secondDate = second.getStartDate();
+            if (firstDate == null && secondDate == null) return 0;
+            if (firstDate == null) return 1;
+            if (secondDate == null) return -1;
+            return firstDate.compareTo(secondDate);
+        }
     }
 }

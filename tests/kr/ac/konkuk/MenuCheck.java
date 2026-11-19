@@ -13,16 +13,6 @@ public class MenuCheck {
         if (!condition) throw new AssertionError("Check " + checks);
     }
 
-    private static void rejected(Runnable action) {
-        try {
-            action.run();
-        } catch (IllegalArgumentException e) {
-            checks++;
-            return;
-        }
-        throw new AssertionError("Expected rejection");
-    }
-
     private static Scanner input(String... lines) {
         return new Scanner(String.join("\n", lines) + "\n");
     }
@@ -37,9 +27,19 @@ public class MenuCheck {
             ZonedDateTime arrival = ZonedDateTime.of(2026, 12, 1, 10, 0, 0, 0, ZoneOffset.of("-08:00"));
             Flight flight = new Flight(1, "KE1", "ICN", "LAX", departure, arrival);
             check(flight.getArrivalTime().toInstant().isAfter(departure.toInstant()));
-            rejected(() -> flight.update("KE2", "ICN", "LAX", arrival, departure));
+            try {
+                flight.update("KE2", "ICN", "LAX", arrival, departure);
+                throw new AssertionError("Expected rejection");
+            } catch (IllegalArgumentException e) {
+                checks++;
+            }
             check(flight.getFlightNumber().equals("KE1"));
-            rejected(() -> new Flight(2, "", "ICN", "LAX", null, null));
+            try {
+                new Flight(2, "", "ICN", "LAX", null, null);
+                throw new AssertionError("Expected rejection");
+            } catch (IllegalArgumentException e) {
+                checks++;
+            }
             Trip trip = new Trip(1, 1, 1, day, day.plusDays(5));
             TodoList todos = trip.getTodoList();
             TodoMenu.start(todos, input("3", "4", "bad", "2", "", "passport", "bad", "2026-12-01", "2026-12-03",
@@ -54,7 +54,12 @@ public class MenuCheck {
             todos.sortByDate();
             check(todos.getTodos().get(0).getDescription().equals("dated"));
             check(todos.getTodos(day.plusDays(10)).isEmpty());
-            rejected(() -> todos.findTodo(1).setDate(day.plusDays(1), day));
+            try {
+                todos.findTodo(1).setDate(day.plusDays(1), day);
+                throw new AssertionError("Expected rejection");
+            } catch (IllegalArgumentException e) {
+                checks++;
+            }
             check(todos.findTodo(1).getStartDate() == null);
             TodoMenu.start(todos, input("2", "invalid period", "2026-12-03", "2026-12-01", "0"));
             check(todos.getTodos().size() == 3);
@@ -65,7 +70,12 @@ public class MenuCheck {
             check(hotels.findHotel(1).getName().equals("TEST HOTEL"));
             check(hotels.findHotel(1).getCheckInDate() == null);
             check(hotels.getHotels(day.plusDays(1)).size() == 1);
-            rejected(() -> hotels.updateHotel(1, "Changed", "Japan", "Tokyo", day.plusDays(3), day));
+            try {
+                hotels.updateHotel(1, "Changed", "Japan", "Tokyo", day.plusDays(3), day);
+                throw new AssertionError("Expected rejection");
+            } catch (IllegalArgumentException e) {
+                checks++;
+            }
             check(hotels.findHotel(1).getName().equals("TEST HOTEL"));
             HotelMenu.start(hotels, input("3", "1", "3", "Osaka", "0"));
             check(hotels.findHotel(1).getCity().equals("Osaka"));

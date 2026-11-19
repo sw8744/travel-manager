@@ -54,12 +54,18 @@ public class FlightList {
     }
 
     public void sortByDate() {
-        flightList.sort(Comparator.comparing((Flight item) -> {
-            if (item.getDepartureTime() == null) {
-                return null;
-            }
-            return item.getDepartureTime().toInstant();
-        },
-                Comparator.nullsLast(Comparator.naturalOrder())));
+        flightList.sort(new FlightDateComparator());
+    }
+
+    private static class FlightDateComparator implements Comparator<Flight> {
+        @Override
+        public int compare(Flight first, Flight second) {
+            ZonedDateTime firstTime = first.getDepartureTime();
+            ZonedDateTime secondTime = second.getDepartureTime();
+            if (firstTime == null && secondTime == null) return 0;
+            if (firstTime == null) return 1;
+            if (secondTime == null) return -1;
+            return firstTime.toInstant().compareTo(secondTime.toInstant());
+        }
     }
 }

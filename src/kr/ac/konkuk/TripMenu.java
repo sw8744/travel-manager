@@ -9,10 +9,10 @@ import java.util.Scanner;
 
 public class TripMenu {
     public static void start(int userId, List<Trip> trips, Scanner scan) {
-        start(userId, trips, scan, () -> {});
+        start(userId, trips, scan, null);
     }
 
-    public static void start(int userId, List<Trip> trips, Scanner scan, Runnable save) {
+    public static void start(int userId, List<Trip> trips, Scanner scan, TripStore store) {
         TravelCautionManager manager;
 
         try {
@@ -54,8 +54,10 @@ public class TripMenu {
                     if (trip != null) {
                         trips.add(trip);
                         nextTripId++;
-                        save.run();
-                        TripDetailMenu.start(trip, manager, scan, save);
+                        if (store != null) {
+                            store.saveTrips(userId, trips);
+                        }
+                        TripDetailMenu.start(trip, manager, scan, store, trips);
                     }
                 }
 
@@ -65,7 +67,7 @@ public class TripMenu {
                     Trip trip = selectTrip(userId, trips, manager, scan);
 
                     if (trip != null) {
-                        TripDetailMenu.start(trip, manager, scan, save);
+                        TripDetailMenu.start(trip, manager, scan, store, trips);
                     }
                 }
 

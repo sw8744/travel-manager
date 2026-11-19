@@ -72,7 +72,18 @@ public class TodoList {
     }
 
     public void sortByDate() {
-        todoList.sort(Comparator.comparing((Todo item) -> item.getStartDate(),
-                Comparator.nullsLast(Comparator.naturalOrder())));
+        todoList.sort(new TodoDateComparator());
+    }
+
+    private static class TodoDateComparator implements Comparator<Todo> {
+        @Override
+        public int compare(Todo first, Todo second) {
+            LocalDate firstDate = first.getStartDate();
+            LocalDate secondDate = second.getStartDate();
+            if (firstDate == null && secondDate == null) return 0;
+            if (firstDate == null) return 1;
+            if (secondDate == null) return -1;
+            return firstDate.compareTo(secondDate);
+        }
     }
 }

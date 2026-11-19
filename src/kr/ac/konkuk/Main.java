@@ -67,11 +67,10 @@ public class Main {
                     int userId = db.getUserNumber(user.id);
                     List<Trip> trips = tripStore.loadTrips(userId);
                     System.out.println(user.name + "님, 환영합니다.");
-                    Runnable save = () -> tripStore.saveTrips(userId, trips);
                     try {
-                        TripMenu.start(userId, trips, scan, save);
+                        TripMenu.start(userId, trips, scan, tripStore);
                     } finally {
-                        save.run();
+                        tripStore.saveTrips(userId, trips);
                     }
                 } catch (UserAlreadyExistsExeption e) {
                     System.out.println("이미 사용 중인 아이디입니다.");
