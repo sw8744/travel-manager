@@ -17,8 +17,8 @@ public class ScheduleMenu {
     public static void start(ScheduleList list, Scanner scan) {
         while (true) {
             System.out.println("\n===== 일정 관리 =====");
-            System.out.println("1. 전체 조회  2. 추가  3. 수정  4. 삭제  0. 돌아가기");
-            System.out.println("8. 날짜별 조회  9. 날짜순 정렬");
+            System.out.println("1. 전체 조회  2. 추가  3. 수정  4. 삭제");
+            System.out.println("5. 날짜별 조회  6. 날짜순 정렬  0. 돌아가기");
             try {
                 switch (MenuInput.text(scan, "선택")) {
                     case "1" -> show(list.getSchedules());
@@ -46,11 +46,11 @@ public class ScheduleMenu {
                         Schedule item = MenuInput.retry(() -> list.findSchedule(MenuInput.id(scan)));
                         list.removeSchedule(item.getId());
                     }
-                    case "8" -> {
+                    case "5" -> {
                         LocalDate date = MenuInput.retry(() -> LocalDate.parse(MenuInput.required(scan, "조회 날짜 (YYYY-MM-DD)")));
                         show(list.getSchedules(date));
                     }
-                    case "9" -> { list.sortByDate(); show(list.getSchedules()); }
+                    case "6" -> { list.sortByDate(); show(list.getSchedules()); }
                     case "0" -> { return; }
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }

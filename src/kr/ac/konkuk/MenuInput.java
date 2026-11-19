@@ -63,15 +63,8 @@ class MenuInput {
             if (value.isEmpty()) return edit ? old : null;
             if (value.equals("없음")) return null;
             LocalDateTime local = LocalDateTime.parse(value.replace(' ', 'T'));
-            ZoneId zone = ZoneId.of(required(scan, "시간대 (예: Asia/Seoul, America/Los_Angeles)"));
-            var offsets = zone.getRules().getValidOffsets(local);
-            if (offsets.isEmpty()) throw new IllegalArgumentException("서머타임 전환으로 존재하지 않는 현지 시각입니다.");
-            ZoneOffset offset = offsets.get(0);
-            if (offsets.size() > 1) {
-                offset = ZoneOffset.of(required(scan, "중복 시각의 UTC 오프셋 " + offsets));
-                if (!offsets.contains(offset)) throw new IllegalArgumentException("가능한 오프셋을 선택하세요.");
-            }
-            return ZonedDateTime.ofStrict(local, offset, zone);
+            ZoneOffset offset = ZoneOffset.of(required(scan, "UTC 시차 (예: +09:00, -08:00)"));
+            return ZonedDateTime.of(local, offset);
         });
     }
 

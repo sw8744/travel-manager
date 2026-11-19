@@ -40,21 +40,19 @@ public class MenuCheck {
             check(MenuInput.editDate(input(""), "date", day).equals(day));
             check(MenuInput.editDate(input("없음"), "date", day) == null);
             check(MenuInput.required(input("", "value"), "required").equals("value"));
-            ZonedDateTime departure = ZonedDateTime.of(2026, 12, 1, 17, 0, 0, 0, ZoneId.of("Asia/Seoul"));
-            ZonedDateTime arrival = ZonedDateTime.of(2026, 12, 1, 10, 0, 0, 0, ZoneId.of("America/Los_Angeles"));
+            ZonedDateTime departure = ZonedDateTime.of(2026, 12, 1, 17, 0, 0, 0, ZoneOffset.of("+09:00"));
+            ZonedDateTime arrival = ZonedDateTime.of(2026, 12, 1, 10, 0, 0, 0, ZoneOffset.of("-08:00"));
             Flight flight = new Flight(1, "KE1", "ICN", "LAX", departure, arrival);
             check(flight.getArrivalTime().toInstant().isAfter(departure.toInstant()));
             rejected(() -> flight.update("KE2", "ICN", "LAX", arrival, departure));
             check(flight.getFlightNumber().equals("KE1"));
             rejected(() -> new Flight(2, "", "ICN", "LAX", null, null));
             ZonedDateTime parsed = MenuInput.time(input("bad", "2026-12-01 17:00", "Bad/Zone",
-                    "2026-12-01 17:00", "Asia/Seoul"), "time", null, false);
+                    "2026-12-01 17:00", "+09:00"), "time", null, false);
             check(parsed.equals(departure));
-            ZonedDateTime dst = MenuInput.time(input("2026-03-08 02:30", "America/Los_Angeles",
-                    "2026-03-08 03:30", "America/Los_Angeles"), "time", null, false);
-            check(dst.getHour() == 3);
-            ZonedDateTime overlap = MenuInput.time(input("2026-11-01 01:30", "America/Los_Angeles", "-08:00"), "time", null, false);
-            check(overlap.getOffset().equals(ZoneOffset.of("-08:00")));
+            ZonedDateTime fixed = MenuInput.time(input("2026-03-08 02:30", "-08:00"), "time", null, false);
+            check(fixed.getHour() == 2);
+            check(fixed.getOffset().equals(ZoneOffset.of("-08:00")));
             check(MenuInput.time(input(""), "time", departure, true).equals(departure));
             check(MenuInput.time(input("없음"), "time", departure, true) == null);
 
@@ -79,7 +77,7 @@ public class MenuCheck {
 
             HotelList hotels = trip.getHotelList();
             HotelMenu.start(hotels, input("3", "4", "2", "", "TEST HOTEL", "Japan", "Tokyo", "2026-12-01", "2026-12-03",
-                    "3", "1", "1", "", "3", "1", "4", "없음", "8", "2026-12-02", "9", "0"));
+                    "3", "1", "1", "", "3", "1", "4", "없음", "5", "2026-12-02", "6", "0"));
             check(hotels.findHotel(1).getName().equals("TEST HOTEL"));
             check(hotels.findHotel(1).getCheckInDate() == null);
             check(hotels.getHotels(day.plusDays(1)).size() == 1);
@@ -92,8 +90,8 @@ public class MenuCheck {
             check(hotels.getHotels().get(0).getName().equals("Earlier"));
 
             FlightList flights = trip.getFlightList();
-            FlightMenu.start(flights, input("3", "4", "2", "KE1", "ICN", "NRT", "2026-12-01 09:00", "Asia/Seoul",
-                    "2026-12-01 11:00", "Asia/Tokyo", "3", "1", "1", "", "3", "1", "4", "없음", "8", "2026-12-01", "9", "0"));
+            FlightMenu.start(flights, input("3", "4", "2", "KE1", "ICN", "NRT", "2026-12-01 09:00", "+09:00",
+                    "2026-12-01 11:00", "+09:00", "3", "1", "1", "", "3", "1", "4", "없음", "5", "2026-12-01", "6", "0"));
             check(flights.findFlight(1).getFlightNumber().equals("KE1"));
             check(flights.findFlight(1).getDepartureTime() == null);
             check(flights.getFlights(day).size() == 1);
@@ -103,7 +101,7 @@ public class MenuCheck {
 
             ScheduleList schedules = trip.getScheduleList();
             ScheduleMenu.start(schedules, input("3", "4", "2", "walk", "2026-12-01", "2026-12-03",
-                    "3", "1", "1", "", "3", "1", "2", "", "없음", "8", "2026-12-02", "9", "0"));
+                    "3", "1", "1", "", "3", "1", "2", "", "없음", "5", "2026-12-02", "6", "0"));
             check(schedules.findSchedule(1).getDescription().equals("walk"));
             check(schedules.findSchedule(1).getStartDate().equals(day));
             check(schedules.findSchedule(1).getEndDate() == null);
@@ -114,7 +112,9 @@ public class MenuCheck {
             Trip other = new Trip(2, 1, 1, day, day);
             check(other.getFlightList().getFlights().isEmpty() && other.getHotelList().getHotels().isEmpty()
                     && other.getTodoList().getTodos().isEmpty() && other.getScheduleList().getSchedules().isEmpty());
-            TripDetailMenu.start(trip, null, input("invalid", "0"));
+            TodoMenu.start(todos, input("5", "1", "true", "6", "7", "1", "0"));
+            check(todos.findTodo(1).isDone());
+            TripDetailMenu.start(trip, null, input("1", "0", "2", "0", "3", "0", "4", "0", "invalid", "0"));
             check(output.toString().contains("잘못된 메뉴 번호입니다."));
             check(output.toString().contains("해당 ID"));
             check(output.toString().contains("TEST HOTEL"));

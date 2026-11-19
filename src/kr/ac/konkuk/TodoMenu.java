@@ -17,9 +17,9 @@ public class TodoMenu {
     public static void start(TodoList list, Scanner scan) {
         while (true) {
             System.out.println("\n===== 할 일 관리 =====");
-            System.out.println("1. 전체 조회  2. 추가  3. 수정  4. 삭제  0. 돌아가기");
+            System.out.println("1. 전체 조회  2. 추가  3. 수정  4. 삭제");
             System.out.println("5. 완료 상태 변경  6. 완료 조회  7. 미완료 조회");
-            System.out.println("8. 날짜별 조회  9. 날짜순 정렬");
+            System.out.println("8. 날짜별 조회  9. 날짜순 정렬  0. 돌아가기");
             try {
                 switch (MenuInput.text(scan, "선택")) {
                     case "1" -> show(list.getTodos());
