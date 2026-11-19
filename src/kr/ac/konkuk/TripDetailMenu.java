@@ -10,6 +10,9 @@ public class TripDetailMenu {
 
     public static void start(Trip trip, TravelCautionManager manager, Scanner scan,
                              TripStore store, List<Trip> trips) {
+        if (manager != null) {
+            manager.showCautions(trip.getCityId());
+        }
         while (true) {
             System.out.println("\n===== 여행 상세 =====");
             System.out.println("여행 ID: " + trip.getTripId());

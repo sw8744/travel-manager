@@ -102,11 +102,11 @@ public class Database {
             conn.setAutoCommit(false);
             try (PreparedStatement stmt = conn.prepareStatement(sql);
                  PreparedStatement number = conn.prepareStatement("INSERT INTO user_numbers(account_id) VALUES (?)")) {
-                stmt.setString(1, user.name);
-                stmt.setString(2, user.id);
+                stmt.setString(1, user.getName());
+                stmt.setString(2, user.getId());
                 stmt.setInt(3, user.getPassword());
                 stmt.executeUpdate();
-                number.setString(1, user.id);
+                number.setString(1, user.getId());
                 number.executeUpdate();
                 conn.commit();
             } catch (SQLException e) {
@@ -114,7 +114,7 @@ public class Database {
                 throw e;
             }
         } catch (SQLException e) {
-            if (e.getErrorCode() == 19 && getUser(user.id) != null) {
+            if (e.getErrorCode() == 19 && getUser(user.getId()) != null) {
                 throw new UserAlreadyExistsExeption();
             }
             throw new IllegalStateException("회원가입 중 DB 오류: " + e.getMessage(), e);

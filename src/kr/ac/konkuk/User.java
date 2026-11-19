@@ -1,16 +1,25 @@
+
 package kr.ac.konkuk;
 
-import java.sql.*;
+import java.util.Objects;
 
 public class User {
-    public String name;
-    public String id;
-    private int password;
+    private final String name;
+    private final String id;
+    private final int password;
 
     public User(String name, String id, int password) {
         this.name = name;
         this.id = id;
         this.password = password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public int getPassword() {
@@ -19,12 +28,19 @@ public class User {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof User) {
-            User u = (User) obj;
-            if(u.id.equals(this.id) && u.name.equals(this.name) && u.password == this.password) {
-                return true;
-            }
+        if (!(obj instanceof User)) {
+            return false;
         }
-        return false;
+
+        User user = (User) obj;
+
+        return id.equals(user.id)
+                && name.equals(user.name)
+                && password == user.password;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, id, password);
     }
 }

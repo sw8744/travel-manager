@@ -65,11 +65,11 @@ class ApplicationTest {
         String password = "  Secret!한글123  ";
         User original = new User("O'Neil", "user'quoted", password.hashCode());
         users.register(original);
-        assertEquals(password.hashCode(), db.getUser(original.id).getPassword());
-        assertEquals(original, users.login(original.id, password.hashCode()));
-        assertTrue(users.login(new User("이름을 입력하지 않아도 됨", original.id, password.hashCode())));
+        assertEquals(password.hashCode(), db.getUser(original.getId()).getPassword());
+        assertEquals(original, users.login(original.getId(), password.hashCode()));
+        assertTrue(users.login(new User("이름을 입력하지 않아도 됨", original.getId(), password.hashCode())));
         try {
-            users.login(original.id, password.trim().hashCode());
+            users.login(original.getId(), password.trim().hashCode());
             fail("잘못된 비밀번호는 거부해야 합니다.");
         } catch (PasswordDoesNotMatchException e) {
             assertNotNull(e.getMessage());
@@ -92,10 +92,10 @@ class ApplicationTest {
         } catch (IllegalArgumentException e) {
             assertNotNull(e.getMessage());
         }
-        int number = db.getUserNumber(original.id);
+        int number = db.getUserNumber(original.getId());
         db.initialize();
         store.initialize();
-        assertEquals(number, new Database().getUserNumber(original.id));
+        assertEquals(number, new Database().getUserNumber(original.getId()));
     }
 
     @Test
@@ -289,4 +289,24 @@ class ApplicationTest {
         }
         return bytes.toString(StandardCharsets.UTF_8);
     }
+
+    @Test
+    void passwordRegexTest() {
+        String output = runMain(
+                "2", "테스터", "weak1", "hello123",
+                "2", "테스터", "weak2", "12345678!",
+                "2", "테스터", "weak3", "Ab1!",
+                "2", "테스터", "valid1", "Java123!",
+                "0"
+        );
+
+        assertNull(db.getUser("weak1"));
+        assertNull(db.getUser("weak2"));
+        assertNull(db.getUser("weak3"));
+
+        assertNotNull(db.getUser("valid1"));
+        assertTrue(output.contains("비밀번호는 8~20자여야 합니다."),output);
+        assertTrue(output.contains("회원가입이 완료되었습니다."));
+    }
+
 }

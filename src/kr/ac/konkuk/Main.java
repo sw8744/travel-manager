@@ -55,6 +55,18 @@ public class Main {
                     continue;
                 }
 
+
+                if (choice.equals("2")) {
+                    String regex = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,20}$";
+
+                    if (!passwordText.matches(regex)) {
+                        System.out.println("비밀번호는 8~20자여야 합니다.");
+                        System.out.println("영문, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.");
+                        continue;
+                    }
+                }
+
+
                 try {
                     int password = passwordText.hashCode();
                     if (choice.equals("2")) {
@@ -64,9 +76,9 @@ public class Main {
                     }
 
                     User user = userManager.login(id, password);
-                    int userId = db.getUserNumber(user.id);
+                    int userId = db.getUserNumber(user.getId());
                     List<Trip> trips = tripStore.loadTrips(userId);
-                    System.out.println(user.name + "님, 환영합니다.");
+                    System.out.println(user.getName() + "님, 환영합니다.");
                     try {
                         TripMenu.start(userId, trips, scan, tripStore);
                     } finally {

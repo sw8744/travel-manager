@@ -7,7 +7,7 @@ public class UserManager {
     static Database db = new Database();
 
     public boolean login(User userInfo) {
-        User searchUser = db.getUser(userInfo.id);
+        User searchUser = db.getUser(userInfo.getId());
         return searchUser != null && userInfo.getPassword() == searchUser.getPassword();
     }
 
@@ -19,7 +19,7 @@ public class UserManager {
     }
 
     public void register(User user) {
-        if (user.name == null || user.name.isBlank() || user.id == null || user.id.isBlank()) {
+        if (user.getName() == null || user.getName().isBlank() || user.getId() == null || user.getId().isBlank()) {
             throw new IllegalArgumentException("이름과 아이디를 모두 입력하세요.");
         }
         db.addUser(user);
