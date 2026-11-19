@@ -7,59 +7,24 @@ public class User {
     public String id;
     private int password;
 
-    public class UserNotFoundException extends RuntimeException {
-        public UserNotFoundException(String message) {
-            super(message);
-        }
-
-        public UserNotFoundException() {
-            super("User가 검색되지 않음");
-        }
+    public User(String name, String id, int password) {
+        this.name = name;
+        this.id = id;
+        this.password = password;
     }
 
-    public class PasswordDoesNotMatchException extends RuntimeException {
-        public PasswordDoesNotMatchException(String message) {
-            super(message);
-        }
-
-        public PasswordDoesNotMatchException() {
-            super("비밀번호가 다름");
-        }
+    public int getPassword() {
+        return password;
     }
 
-    public User(String id, String password) {
-        try {
-            Connection conn = DriverManager.getConnection("jdbc:sqlite:data.db");
-
-            String sql = "SELECT * FROM user WHERE id=" + id;
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-
-            if(rs.next()) {
-                if(rs.getInt("password") == password.hashCode()) {
-                    this.name = rs.getString("name");
-                    this.id = rs.getString("id");
-                    this.password = rs.getInt("password");
-                }
-                else {
-                    throw new PasswordDoesNotMatchException();
-                }
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof User) {
+            User u = (User) obj;
+            if(u.id.equals(this.id) && u.name.equals(this.name) && u.password == this.password) {
+                return true;
             }
-            else {
-                throw new UserNotFoundException();
-            }
-
-            rs.close();
-            stmt.close();
-            conn.close();
-
-        } catch (SQLException e) {
-            System.out.println("오류 : " + e.getMessage());
-        } catch (UserNotFoundException e) {
-            System.out.println("User가 검색되지 않음");
-        } catch (PasswordDoesNotMatchException e) {
-            System.out.println("비밀번호가 다름");
         }
+        return false;
     }
-
 }
