@@ -18,7 +18,6 @@ public class Main {
             tripStore.initialize();
         } catch (IllegalStateException e) {
             System.out.println(e.getMessage());
-            System.out.println("프로젝트 루트에서 ./mvnw compile exec:java로 실행하세요.");
             return;
         }
 
