@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class Main {
+public class MainConsole {
     public static void main(String[] args) {
         UserManager userManager = new UserManager();
         Database db = new Database();
