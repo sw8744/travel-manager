@@ -1,7 +1,8 @@
 package kr.ac.konkuk;
 
-import java.util.Scanner;
+import java.awt.GraphicsEnvironment;
 import java.util.List;
+import java.util.Scanner;
 
 public class TripDetailMenu {
     public static void start(Trip trip, TravelCautionManager manager, Scanner scan) {
@@ -10,6 +11,7 @@ public class TripDetailMenu {
 
     public static void start(Trip trip, TravelCautionManager manager, Scanner scan,
                              TripStore store, List<Trip> trips) {
+        boolean canOpenSwing = !GraphicsEnvironment.isHeadless();
         if (manager != null) {
             manager.showCautions(trip.getCityId());
         }
@@ -22,7 +24,11 @@ public class TripDetailMenu {
             HotelMenu.show(trip.getHotelList().getHotels());
             ScheduleMenu.show(trip.getScheduleList().getSchedules());
             System.out.println("\n1. 할 일 관리  2. 항공 관리  3. 숙박 관리  4. 일정 관리");
-            System.out.println("5. 여행 유의사항  0. 여행 목록으로 돌아가기");
+            System.out.print("5. 여행 유의사항");
+            if (canOpenSwing) {
+                System.out.print("  6. Swing에서 여행 상세 관리");
+            }
+            System.out.println("  0. 여행 목록으로 돌아가기");
             System.out.print("선택 : ");
             String choice = scan.nextLine().trim();
             try {
@@ -32,6 +38,13 @@ public class TripDetailMenu {
                     case "3" -> HotelMenu.start(trip.getHotelList(), scan);
                     case "4" -> ScheduleMenu.start(trip.getScheduleList(), scan);
                     case "5" -> manager.showCautions(trip.getCityId());
+                    case "6" -> {
+                        if (canOpenSwing) {
+                            TripDetailPanel.showDialog(trip);
+                        } else {
+                            System.out.println("이 환경에서는 Swing 창을 열 수 없습니다.");
+                        }
+                    }
                     case "0" -> { return; }
                     default -> System.out.println("잘못된 메뉴 번호입니다.");
                 }

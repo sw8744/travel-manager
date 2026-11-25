@@ -1,27 +1,29 @@
 package kr.ac.konkuk;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.time.LocalDate;
+import java.util.Arrays;
 
 public class Main extends JFrame {
-    Container frame = getContentPane();
-
-    Main(String title) {
-        this.setTitle(title);
-        this.setSize(500, 500);
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        initLayout();
-
-        this.setVisible(true);
-    }
-
-    private void initLayout() {
-        frame.add(new JLabel("travel-manager"), "North");
+    private Main(Trip trip) {
+        super("여행 상세 미리보기 · 변경사항은 저장되지 않습니다");
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setContentPane(new TripDetailPanel(trip));
+        pack();
+        setMinimumSize(new Dimension(760, 440));
+        setLocationRelativeTo(null);
     }
 
     public static void main(String[] args) {
-        new Main("travel-manager");
+        if (Arrays.asList(args).contains("--console")) {
+            MainConsole.main(args);
+            return;
+        }
+        SwingUtilities.invokeLater(() -> {
+            LocalDate today = LocalDate.now();
+            Trip preview = new Trip(1, 0, 0, today, today.plusDays(3));
+            new Main(preview).setVisible(true);
+        });
     }
 }

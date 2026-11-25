@@ -282,7 +282,7 @@ class ApplicationTest {
         try (PrintStream output = new PrintStream(bytes, true, StandardCharsets.UTF_8)) {
             System.setIn(new ByteArrayInputStream((String.join("\n", lines) + "\n").getBytes(StandardCharsets.UTF_8)));
             System.setOut(output);
-            Main.main(new String[0]);
+            Main.main(new String[]{"--console"});
         } finally {
             System.setIn(originalInput);
             System.setOut(originalOutput);
