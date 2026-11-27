@@ -2,173 +2,202 @@ package kr.ac.konkuk;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
 
-abstract class TripItemsPanel<T> extends JPanel {
+abstract class TripItemsPanel extends JPanel {
     private final String itemName;
-    private final JTextField dateField = new JTextField(10);
-    private final JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEADING, 6, 0));
-    private final JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEADING, 6, 0));
-    private final JLabel itemCount = new JLabel();
-    private final List<JButton> selectionButtons = new ArrayList<>();
-    private final DefaultTableModel tableModel;
+    private final String[] columnNames;
     private final JTable table;
-    private List<T> rows = List.of();
+    private DefaultTableModel model;
+
+    private final JTextField dateField = new JTextField(10);
+    private final JTextField idField = new JTextField(6);
+    private final JPanel filters = new JPanel();
+    private final JPanel actions = new JPanel();
+    private final JLabel itemCount = new JLabel();
+
+    private final CardLayout pages = new CardLayout();
+    private final JLabel formTitle = new JLabel();
+    private final JPanel formFields = new JPanel(new GridLayout(0, 2, 8, 5));
+    private final JLabel deleteMessage = new JLabel();
+    private final ButtonListener buttonListener = new ButtonListener();
+
     private LocalDate filterDate;
+    private Integer editingId;
+    private int deletingId;
 
-    TripItemsPanel(String itemName, String... columnNames) {
-        super(new BorderLayout(0, 12));
+    TripItemsPanel(String itemName, String[] columnNames) {
+        setLayout(pages);
         this.itemName = itemName;
-        setBorder(BorderFactory.createEmptyBorder(14, 12, 12, 12));
+        this.columnNames = columnNames;
+        model = new DefaultTableModel(columnNames, 0);
+        table = new JTable(model);
+        table.setEnabled(false);
 
-        tableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        table = new JTable(tableModel) {
-            @Override
-            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-                Component cell = super.prepareRenderer(renderer, row, column);
-                if (cell instanceof JComponent component) {
-                    Object value = getValueAt(row, column);
-                    component.setToolTipText(value == null ? null : value.toString());
-                }
-                return cell;
-            }
-        };
-        table.setFillsViewportHeight(true);
-        table.setRowHeight(28);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getTableHeader().setReorderingAllowed(false);
-        table.getColumnModel().getColumn(0).setPreferredWidth(48);
-        table.getColumnModel().getColumn(0).setMaxWidth(68);
-        table.getSelectionModel().addListSelectionListener(event -> {
-            boolean hasSelection = table.getSelectedRow() >= 0;
-            for (JButton button : selectionButtons) {
-                button.setEnabled(hasSelection);
-            }
-        });
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                if (event.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(event)
-                        && table.rowAtPoint(event.getPoint()) >= 0) {
-                    applyToSelection(TripItemsPanel.this::editItem);
-                }
-            }
-        });
-
-        JLabel dateLabel = new JLabel("날짜 (YYYY-MM-DD)");
-        dateLabel.setLabelFor(dateField);
-        filters.add(dateLabel);
-        filters.add(dateField);
-        addButton(filters, "날짜 조회", this::applyDateFilter);
-        dateField.addActionListener(event -> applyDateFilter());
-        addButton(filters, "전체 날짜", () -> {
-            dateField.setText("");
-            filterDate = null;
-            refresh();
-        });
-        addButton(filters, "날짜순 정렬", () -> {
-            sortItemsByDate();
-            refresh();
-        });
-        addButton(actions, "추가", () -> {
-            if (editItem(null)) {
-                refresh();
-            }
-        });
-        addItemAction("수정", this::editItem);
-        addItemAction("삭제", this::confirmDelete);
-
-        JPanel footer = new JPanel(new BorderLayout());
-        footer.add(actions, BorderLayout.LINE_START);
-        footer.add(itemCount, BorderLayout.LINE_END);
-        add(filters, BorderLayout.PAGE_START);
-        add(new JScrollPane(table), BorderLayout.CENTER);
-        add(footer, BorderLayout.PAGE_END);
+        add(createListPage(), "목록");
+        add(createFormPage(), "입력");
+        add(createDeletePage(), "삭제 확인");
     }
 
-    protected abstract List<T> findItems(LocalDate date);
+    private JPanel createListPage() {
+        JPanel page = new JPanel(new BorderLayout(0, 8));
 
-    protected abstract Object[] rowValues(T item);
+        filters.add(new JLabel("날짜 (YYYY-MM-DD)"));
+        filters.add(dateField);
+        dateField.addActionListener(buttonListener);
+        addButton(filters, "날짜 조회");
+        addButton(filters, "전체 날짜");
+        addButton(filters, "날짜순 정렬");
 
-    protected abstract boolean editItem(T item);
+        JPanel header = new JPanel(new BorderLayout());
+        header.add(new JLabel(itemName + " 관리"), BorderLayout.NORTH);
+        header.add(filters, BorderLayout.CENTER);
+        page.add(header, BorderLayout.NORTH);
+        page.add(new JScrollPane(table), BorderLayout.CENTER);
 
-    protected abstract void deleteItem(T item);
+        addButton(actions, "추가");
+        actions.add(new JLabel("표의 ID"));
+        actions.add(idField);
+        idField.addActionListener(buttonListener);
+        addButton(actions, "수정");
+        addButton(actions, "삭제");
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.add(actions, BorderLayout.CENTER);
+        footer.add(itemCount, BorderLayout.EAST);
+        page.add(footer, BorderLayout.SOUTH);
+        return page;
+    }
+
+    private JPanel createFormPage() {
+        JPanel page = new JPanel(new BorderLayout(0, 8));
+        page.add(formTitle, BorderLayout.NORTH);
+
+        JPanel fields = new JPanel(new BorderLayout());
+        fields.add(formFields, BorderLayout.NORTH);
+        page.add(fields, BorderLayout.CENTER);
+
+        JPanel buttons = new JPanel();
+        addButton(buttons, "저장");
+        addButton(buttons, "취소");
+        page.add(buttons, BorderLayout.SOUTH);
+        return page;
+    }
+
+    private JPanel createDeletePage() {
+        JPanel page = new JPanel(new BorderLayout(0, 8));
+        page.add(deleteMessage, BorderLayout.NORTH);
+        JPanel buttons = new JPanel();
+        addButton(buttons, "삭제 확인");
+        addButton(buttons, "취소");
+        page.add(buttons, BorderLayout.SOUTH);
+        return page;
+    }
+
+    protected abstract void showItems(LocalDate date);
+
+    protected abstract void loadForm(int id);
+
+    protected abstract void clearForm();
+
+    protected abstract void saveForm(Integer id);
+
+    protected abstract void deleteItem(int id);
 
     protected abstract void sortItemsByDate();
+
+    protected final void addField(String label, JComponent field) {
+        formFields.add(new JLabel(label));
+        formFields.add(field);
+        if (field instanceof JTextField) {
+            ((JTextField) field).addActionListener(buttonListener);
+        }
+    }
 
     protected final void addFilter(JComponent component) {
         filters.add(component);
     }
 
-    protected final void addItemAction(String label, Predicate<T> action) {
-        JButton button = addButton(actions, label, () -> applyToSelection(action));
-        button.setEnabled(false);
-        selectionButtons.add(button);
+    protected final void addActionButton(JButton button) {
+        actions.add(button);
+    }
+
+    protected final void addRow(Object[] values) {
+        model.addRow(values);
     }
 
     protected final void refresh() {
-        T selected = selectedItem();
-        rows = findItems(filterDate);
-        tableModel.setRowCount(0);
-        for (T row : rows) {
-            tableModel.addRow(rowValues(row));
+        model = new DefaultTableModel(columnNames, 0);
+        table.setModel(model);
+        showItems(filterDate);
+        itemCount.setText(model.getRowCount() + "개");
+    }
+
+    protected final int selectedId() {
+        try {
+            return Integer.parseInt(idField.getText().trim());
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("표에 표시된 ID를 숫자로 입력하세요.");
         }
-        int newSelection = selected == null ? -1 : rows.indexOf(selected);
-        if (newSelection >= 0) {
-            table.setRowSelectionInterval(newSelection, newSelection);
-        }
-        itemCount.setText(rows.isEmpty() ? "표시할 항목이 없습니다" : rows.size() + "개");
+    }
+
+    protected final void showError(IllegalArgumentException exception) {
+        JOptionPane.showMessageDialog(this, exception.getMessage());
+    }
+
+    private void openAddForm() {
+        editingId = null;
+        clearForm();
+        formTitle.setText(itemName + " 추가");
+        pages.show(this, "입력");
+    }
+
+    private void openEditForm() {
+        int id = selectedId();
+        loadForm(id);
+        editingId = id;
+        formTitle.setText(itemName + " 수정 · ID " + id);
+        pages.show(this, "입력");
+    }
+
+    private void save() {
+        saveForm(editingId);
+        refresh();
+        pages.show(this, "목록");
+    }
+
+    private void openDeletePage() {
+        deletingId = selectedId();
+        deleteMessage.setText(itemName + " ID " + deletingId + " 항목을 삭제할까요?");
+        pages.show(this, "삭제 확인");
+    }
+
+    private void delete() {
+        deleteItem(deletingId);
+        idField.setText("");
+        refresh();
+        pages.show(this, "목록");
     }
 
     private void applyDateFilter() {
-        try {
-            filterDate = optionalDate(dateField, "조회 날짜");
-            refresh();
-        } catch (IllegalArgumentException exception) {
-            showError(this, exception);
-        }
+        filterDate = optionalDate(dateField, "조회 날짜");
+        refresh();
     }
 
-    private T selectedItem() {
-        int row = table.getSelectedRow();
-        return row >= 0 ? rows.get(table.convertRowIndexToModel(row)) : null;
-    }
-
-    private void applyToSelection(Predicate<T> action) {
-        T selected = selectedItem();
-        if (selected != null && action.test(selected)) {
-            refresh();
-        }
-    }
-
-    private boolean confirmDelete(T item) {
-        int result = JOptionPane.showConfirmDialog(this, "선택한 " + itemName + " 항목을 삭제할까요?",
-                itemName + " 삭제", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (result != JOptionPane.OK_OPTION) {
-            return false;
-        }
-        deleteItem(item);
-        return true;
-    }
-
-    private static JButton addButton(JPanel panel, String label, Runnable action) {
+    private void addButton(JPanel panel, String label) {
         JButton button = new JButton(label);
-        button.addActionListener(event -> action.run());
+        button.addActionListener(buttonListener);
         panel.add(button);
-        return button;
+    }
+
+    protected static String fieldText(Object value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toString();
     }
 
     protected static String requiredText(JTextField field, String label) {
@@ -191,55 +220,38 @@ abstract class TripItemsPanel<T> extends JPanel {
         }
     }
 
-    private static void showError(Component owner, IllegalArgumentException exception) {
-        JOptionPane.showMessageDialog(owner, exception.getMessage(), "입력 확인", JOptionPane.ERROR_MESSAGE);
-    }
-
-    protected static final class ItemForm {
-        private final JPanel panel = new JPanel(new GridBagLayout());
-        private int row;
-
-        JTextField text(String label, Object value) {
-            JTextField field = new JTextField(value == null ? "" : value.toString(), 23);
-            addField(label, field);
-            return field;
-        }
-
-        JCheckBox checkBox(String label, boolean selected) {
-            JCheckBox field = new JCheckBox(label, selected);
-            addField("", field);
-            return field;
-        }
-
-        private void addField(String text, JComponent field) {
-            GridBagConstraints constraints = new GridBagConstraints();
-            constraints.gridy = row++;
-            constraints.anchor = GridBagConstraints.LINE_START;
-            constraints.insets = new Insets(4, 0, 4, 12);
-            if (!text.isEmpty()) {
-                JLabel label = new JLabel(text);
-                label.setLabelFor(field);
-                panel.add(label, constraints);
-            }
-            constraints.gridx = 1;
-            constraints.weightx = 1;
-            constraints.fill = GridBagConstraints.HORIZONTAL;
-            constraints.insets = new Insets(4, 0, 4, 0);
-            panel.add(field, constraints);
-        }
-
-        boolean show(Component owner, String title, Runnable submit) {
-            Object[] options = {"저장", "취소"};
-            while (JOptionPane.showOptionDialog(owner, panel, title, JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.PLAIN_MESSAGE, null, options, options[0]) == 0) {
-                try {
-                    submit.run();
-                    return true;
-                } catch (IllegalArgumentException exception) {
-                    showError(owner, exception);
+    private class ButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent event) {
+            try {
+                if (event.getSource() == dateField) {
+                    applyDateFilter();
+                } else if (event.getSource() == idField) {
+                    openEditForm();
+                } else if (event.getSource() instanceof JTextField) {
+                    save();
+                } else {
+                    switch (event.getActionCommand()) {
+                        case "날짜 조회" -> applyDateFilter();
+                        case "전체 날짜" -> {
+                            dateField.setText("");
+                            applyDateFilter();
+                        }
+                        case "날짜순 정렬" -> {
+                            sortItemsByDate();
+                            refresh();
+                        }
+                        case "추가" -> openAddForm();
+                        case "수정" -> openEditForm();
+                        case "삭제" -> openDeletePage();
+                        case "저장" -> save();
+                        case "삭제 확인" -> delete();
+                        case "취소" -> pages.show(TripItemsPanel.this, "목록");
+                    }
                 }
+            } catch (IllegalArgumentException exception) {
+                showError(exception);
             }
-            return false;
         }
     }
 }

@@ -4,54 +4,76 @@ import javax.swing.JTextField;
 import java.time.LocalDate;
 import java.util.List;
 
-final class SchedulePanel extends TripItemsPanel<Schedule> {
+final class SchedulePanel extends TripItemsPanel {
     private final ScheduleList items;
+    private final JTextField descriptionField = new JTextField();
+    private final JTextField startDateField = new JTextField();
+    private final JTextField endDateField = new JTextField();
 
     SchedulePanel(ScheduleList items) {
-        super("일정", "ID", "내용", "시작일", "종료일");
+        super("일정", new String[]{"ID", "내용", "시작일", "종료일"});
         this.items = items;
+
+        addField("내용", descriptionField);
+        addField("시작일 (선택, YYYY-MM-DD)", startDateField);
+        addField("종료일 (선택, YYYY-MM-DD)", endDateField);
         refresh();
     }
 
     @Override
-    protected List<Schedule> findItems(LocalDate date) {
-        return date == null ? items.getSchedules() : items.getSchedules(date);
+    protected void showItems(LocalDate date) {
+        List<Schedule> visibleItems;
+        if (date == null) {
+            visibleItems = items.getSchedules();
+        } else {
+            visibleItems = items.getSchedules(date);
+        }
+
+        for (Schedule item : visibleItems) {
+            addRow(new Object[]{item.getId(), item.getDescription(), item.getStartDate(), item.getEndDate()});
+        }
     }
 
     @Override
-    protected Object[] rowValues(Schedule item) {
-        return new Object[]{item.getId(), item.getDescription(), item.getStartDate(), item.getEndDate()};
+    protected void loadForm(int id) {
+        Schedule item = items.findSchedule(id);
+        descriptionField.setText(fieldText(item.getDescription()));
+        startDateField.setText(fieldText(item.getStartDate()));
+        endDateField.setText(fieldText(item.getEndDate()));
     }
 
     @Override
-    protected boolean editItem(Schedule item) {
-        ItemForm form = new ItemForm();
-        JTextField description = form.text(item == null ? "내용" : "내용 (빈칸: 유지)",
-                item == null ? null : item.getDescription());
-        JTextField startDate = form.text("시작일 (선택, YYYY-MM-DD)", item == null ? null : item.getStartDate());
-        JTextField endDate = form.text("종료일 (선택, YYYY-MM-DD)", item == null ? null : item.getEndDate());
-
-        return form.show(this, item == null ? "일정 추가" : "일정 수정", () -> {
-            String text = item != null && description.getText().isBlank()
-                    ? item.getDescription() : requiredText(description, "내용");
-            LocalDate start = optionalDate(startDate, "시작일");
-            LocalDate end = optionalDate(endDate, "종료일");
-            if (start != null && end != null && start.isAfter(end)) {
-                throw new IllegalArgumentException("시작일이 종료일보다 늦습니다.");
-            }
-            if (item == null) {
-                items.addSchedule(start, end, text);
-            } else {
-                int id = item.getId();
-                items.setDate(id, start, end);
-                items.setDescription(id, text);
-            }
-        });
+    protected void clearForm() {
+        descriptionField.setText("");
+        startDateField.setText("");
+        endDateField.setText("");
     }
 
     @Override
-    protected void deleteItem(Schedule item) {
-        items.removeSchedule(item.getId());
+    protected void saveForm(Integer id) {
+        String description;
+        if (id != null && descriptionField.getText().isBlank()) {
+            description = items.findSchedule(id).getDescription();
+        } else {
+            description = requiredText(descriptionField, "내용");
+        }
+        LocalDate start = optionalDate(startDateField, "시작일");
+        LocalDate end = optionalDate(endDateField, "종료일");
+        if (start != null && end != null && start.isAfter(end)) {
+            throw new IllegalArgumentException("시작일이 종료일보다 늦습니다.");
+        }
+
+        if (id == null) {
+            items.addSchedule(start, end, description);
+        } else {
+            items.setDate(id, start, end);
+            items.setDescription(id, description);
+        }
+    }
+
+    @Override
+    protected void deleteItem(int id) {
+        items.removeSchedule(id);
     }
 
     @Override
